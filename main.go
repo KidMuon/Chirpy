@@ -17,19 +17,22 @@ func main() {
 	mux := http.NewServeMux()
 	appHandler := http.FileServer(http.Dir("."))
 	mux.Handle("/app/", http.StripPrefix("/app", cfg.middlewareMetricsInc(appHandler)))
-	mux.HandleFunc("/healthz/", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-		w.WriteHeader(200)
-		w.Write([]byte("OK"))
-	})
+	mux.HandleFunc("/healthz/", handleHealthz)
 	mux.HandleFunc("/metrics/", cfg.handleServeMetric)
-	mux.HandleFunc("/reset/", cfg.handleResetServeMetric)
+	mux.HandleFunc("/reset/", cfg.handleResetMetric)
+
 	server := http.Server{
 		Addr:    ":8080",
 		Handler: mux,
 	}
 
 	log.Fatal(server.ListenAndServe())
+}
+
+func handleHealthz(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(200)
+	w.Write([]byte("OK"))
 }
 
 func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
@@ -45,7 +48,7 @@ func (cfg *apiConfig) handleServeMetric(w http.ResponseWriter, r *http.Request) 
 	w.Write([]byte(fmt.Sprintf("Hits: %d", cfg.fileserverhits.Load())))
 }
 
-func (cfg *apiConfig) handleResetServeMetric(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handleResetMetric(w http.ResponseWriter, r *http.Request) {
 	cfg.fileserverhits.Store(0)
 	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(200)
