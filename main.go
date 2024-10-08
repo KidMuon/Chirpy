@@ -40,8 +40,10 @@ func main() {
 	mux.HandleFunc("POST /admin/reset", cfg.handleResetMetric)
 
 	mux.HandleFunc("GET /api/healthz", handleHealthz)
-	mux.HandleFunc("POST /api/validate_chirp", cfg.handleValidateChirp)
 	mux.HandleFunc("POST /api/users", cfg.handleCreateUser)
+	mux.HandleFunc("POST /api/chirps", cfg.handleCreateChirp)
+	mux.HandleFunc("GET /api/chirps", cfg.handleGetAllChirps)
+	mux.HandleFunc("GET /api/chirps/{chirpID}", cfg.handleGetChripByID)
 
 	server := http.Server{
 		Addr:    ":8080",
