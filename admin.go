@@ -12,6 +12,14 @@ func (cfg *apiConfig) handleServeMetric(w http.ResponseWriter, r *http.Request) 
 }
 
 func (cfg *apiConfig) handleResetMetric(w http.ResponseWriter, r *http.Request) {
+	if cfg.platform != "dev" {
+		respondWithError(w, 403, "Forbidden")
+		return
+	}
+	err := cfg.db.DeleteUsers(r.Context())
+	if err != nil {
+		respondWithError(w, 500, "Internal Server Error")
+	}
 	cfg.fileserverhits.Store(0)
 	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(200)
