@@ -20,3 +20,12 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) error
 func respondWithError(w http.ResponseWriter, code int, msg string) error {
 	return respondWithJSON(w, code, map[string]string{"error": msg})
 }
+
+type responseError struct {
+	code int
+	err  error
+}
+
+func (r responseError) Error() string {
+	return r.err.Error()
+}
