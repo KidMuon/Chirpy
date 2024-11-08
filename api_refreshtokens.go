@@ -40,7 +40,7 @@ func (cfg *apiConfig) handleRefresh(w http.ResponseWriter, r *http.Request) {
 
 	dbRefreshToken, err := cfg.db.FindRefreshToken(context.Background(), refreshToken)
 	if err != nil || dbRefreshToken.Token == "" {
-		respondWithError(w, 401, "Unauthorized")
+		respondWithError(w, 401, "unauthorized")
 		return
 	}
 

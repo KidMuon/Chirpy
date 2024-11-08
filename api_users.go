@@ -48,13 +48,13 @@ func (cfg *apiConfig) handleLoginUser(w http.ResponseWriter, r *http.Request) {
 
 	dbUser, err := cfg.db.GetUserByEmail(r.Context(), reqUser.Email)
 	if err != nil {
-		respondWithError(w, 401, "Incorrect Email or Password")
+		respondWithError(w, 401, "incorrect email or password")
 		return
 	}
 
 	err = auth.CheckPasswordHash(reqUser.Password, dbUser.HashedPassword)
 	if err != nil {
-		respondWithError(w, 401, "Incorrect Email or Password")
+		respondWithError(w, 401, "incorrect email or password")
 		return
 	}
 	user := dbUserToUser(dbUser)
@@ -83,16 +83,16 @@ func getUserFromRequest(r *http.Request) (requestUser, responseError) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&reqUser)
 	if err != nil {
-		return requestUser{}, responseError{code: 500, err: fmt.Errorf("Something went wrong")}
+		return requestUser{}, responseError{code: 500, err: fmt.Errorf("something went wrong")}
 	}
 
 	if reqUser.Password == "" {
-		return requestUser{}, responseError{code: 400, err: fmt.Errorf("Password Required")}
+		return requestUser{}, responseError{code: 400, err: fmt.Errorf("password required")}
 	}
 
 	hashed_password, err := auth.HashPassword(reqUser.Password)
 	if err != nil {
-		return requestUser{}, responseError{code: 500, err: fmt.Errorf("Something went wrong")}
+		return requestUser{}, responseError{code: 500, err: fmt.Errorf("something went wrong")}
 	}
 	reqUser.hashed_password = hashed_password
 

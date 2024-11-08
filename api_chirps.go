@@ -15,7 +15,7 @@ import (
 func (cfg *apiConfig) handleGetAllChirps(w http.ResponseWriter, r *http.Request) {
 	dbChirps, err := cfg.db.GetAllChirps(r.Context())
 	if err != nil {
-		respondWithError(w, 500, "Something went wrong")
+		respondWithError(w, 500, "something went wrong")
 		return
 	}
 
@@ -30,12 +30,12 @@ func (cfg *apiConfig) handleGetAllChirps(w http.ResponseWriter, r *http.Request)
 func (cfg *apiConfig) handleGetChripByID(w http.ResponseWriter, r *http.Request) {
 	chirpUUID, err := uuid.Parse(r.PathValue("chirpID"))
 	if err != nil {
-		respondWithError(w, 500, "Something went wrong")
+		respondWithError(w, 500, "something went wrong")
 		return
 	}
 	dbChirp, err := cfg.db.GetChirpByID(r.Context(), chirpUUID)
 	if err != nil {
-		respondWithError(w, 404, "Not Found")
+		respondWithError(w, 404, "not found")
 		return
 	}
 	respondWithJSON(w, 200, dbChirpToChirp(dbChirp))
@@ -54,7 +54,7 @@ func (cfg *apiConfig) handleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	var reqChirp requestChirp
 	err := decoder.Decode(&reqChirp)
 	if err != nil {
-		respondWithError(w, 500, "Something went wrong")
+		respondWithError(w, 500, "something went wrong")
 		return
 	}
 
@@ -64,7 +64,7 @@ func (cfg *apiConfig) handleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if chirpCharacterCount > 140 {
-		respondWithError(w, 400, "Chirp is too long")
+		respondWithError(w, 400, "chirp is too long")
 		return
 	}
 
