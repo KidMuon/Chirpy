@@ -27,7 +27,7 @@ func (cfg *apiConfig) handleGetAllChirps(w http.ResponseWriter, r *http.Request)
 	respondWithJSON(w, 200, chirps)
 }
 
-func (cfg *apiConfig) handleGetChripByID(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) handleGetChirpByID(w http.ResponseWriter, r *http.Request) {
 	chirpUUID, err := uuid.Parse(r.PathValue("chirpID"))
 	if err != nil {
 		respondWithError(w, 500, "something went wrong")
