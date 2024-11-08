@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"time"
 
+	"strings"
+
+	"github.com/KidMuon/chirpy/internal/auth"
 	"github.com/KidMuon/chirpy/internal/database"
 	"github.com/google/uuid"
-	"strings"
 )
 
 func (cfg *apiConfig) handleGetAllChirps(w http.ResponseWriter, r *http.Request) {
@@ -66,6 +68,19 @@ func (cfg *apiConfig) handleCreateChirp(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	token, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, 400, err.Error())
+		return
+	}
+
+	token_ID, err := auth.ValidateJWT(token, cfg.tokenSecret)
+	if err != nil {
+		respondWithError(w, 401, err.Error())
+		return
+	}
+	reqChirp.User_ID = token_ID
+
 	chirpToCreate := database.CreateChirpParams{
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -79,7 +94,6 @@ func (cfg *apiConfig) handleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	}
 
 	respondWithJSON(w, 201, dbChirpToChirp(dbChirp))
-
 }
 
 type Chirp struct {

@@ -28,8 +28,16 @@ func (cfg *apiConfig) handleCreateUser(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 400, "email already in use")
 		return
 	}
+	user := dbUserToUser(dbUser)
 
-	respondWithJSON(w, 201, dbUserToUser(dbUser))
+	token, err := auth.MakeJWT(user.Id, cfg.tokenSecret, reqUser.expiration_duration)
+	if err != nil {
+		respondWithError(w, 500, err.Error())
+		return
+	}
+	user.Token = token
+
+	respondWithJSON(w, 201, user)
 }
 
 func (cfg *apiConfig) handleLoginUser(w http.ResponseWriter, r *http.Request) {
@@ -49,8 +57,23 @@ func (cfg *apiConfig) handleLoginUser(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, 401, "Incorrect Email or Password")
 		return
 	}
+	user := dbUserToUser(dbUser)
 
-	respondWithJSON(w, 200, dbUserToUser(dbUser))
+	token, err := auth.MakeJWT(user.Id, cfg.tokenSecret, reqUser.expiration_duration)
+	if err != nil {
+		respondWithError(w, 500, "something went wrong")
+		return
+	}
+	user.Token = token
+
+	refreshToken, err := makeRefreshToken(cfg, user)
+	if err != nil {
+		respondWithError(w, 500, "something went wrong")
+		return
+	}
+	user.RefreshToken = refreshToken
+
+	respondWithJSON(w, 200, user)
 }
 
 func getUserFromRequest(r *http.Request) (requestUser, responseError) {
@@ -73,20 +96,25 @@ func getUserFromRequest(r *http.Request) (requestUser, responseError) {
 	}
 	reqUser.hashed_password = hashed_password
 
+	reqUser.expiration_duration = time.Duration(3600 * 1e9)
+
 	return reqUser, responseError{}
 }
 
 type requestUser struct {
-	Email           string `json:"email"`
-	Password        string `json:"password"`
-	hashed_password string
+	Email               string `json:"email"`
+	Password            string `json:"password"`
+	expiration_duration time.Duration
+	hashed_password     string
 }
 
 type User struct {
-	Id         uuid.UUID `json:"id"`
-	Created_at time.Time `json:"created_at"`
-	Updated_at time.Time `json:"updated_at"`
-	Email      string    `json:"email"`
+	Id           uuid.UUID `json:"id"`
+	Created_at   time.Time `json:"created_at"`
+	Updated_at   time.Time `json:"updated_at"`
+	Email        string    `json:"email"`
+	Token        string    `json:"token"`
+	RefreshToken string    `json:"refresh_token"`
 }
 
 func dbUserToUser(dbUser database.User) User {

@@ -16,6 +16,7 @@ type apiConfig struct {
 	fileserverhits atomic.Int32
 	db             *database.Queries
 	platform       string
+	tokenSecret    string
 }
 
 func main() {
@@ -31,6 +32,7 @@ func main() {
 	var cfg apiConfig
 	cfg.db = dbQueries
 	cfg.platform = os.Getenv("PLATFORM")
+	cfg.tokenSecret = os.Getenv("TOKEN_SECRET")
 
 	mux := http.NewServeMux()
 	appPathHandler := http.FileServer(http.Dir("."))
@@ -45,6 +47,8 @@ func main() {
 	mux.HandleFunc("GET /api/chirps", cfg.handleGetAllChirps)
 	mux.HandleFunc("GET /api/chirps/{chirpID}", cfg.handleGetChripByID)
 	mux.HandleFunc("POST /api/login", cfg.handleLoginUser)
+	mux.HandleFunc("POST /api/refresh", cfg.handleRefresh)
+	mux.HandleFunc("POST /api/revoke", cfg.handleRevoke)
 
 	server := http.Server{
 		Addr:    ":8080",
