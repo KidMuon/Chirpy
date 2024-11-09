@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
@@ -94,6 +95,43 @@ func (cfg *apiConfig) handleCreateChirp(w http.ResponseWriter, r *http.Request) 
 	}
 
 	respondWithJSON(w, 201, dbChirpToChirp(dbChirp))
+}
+
+func (cfg *apiConfig) handleDeleteChirpByID(w http.ResponseWriter, r *http.Request) {
+	chirpUUID, err := uuid.Parse(r.PathValue("chirpID"))
+	if err != nil {
+		respondWithError(w, 500, "something went wrong")
+		return
+	}
+
+	authToken, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, 401, "no authentication found")
+		return
+	}
+	userID, err := auth.ValidateJWT(authToken, cfg.tokenSecret)
+	if err != nil {
+		respondWithError(w, 401, err.Error())
+		return
+	}
+
+	dbChirp, err := cfg.db.GetChirpByID(r.Context(), chirpUUID)
+	if err != nil {
+		respondWithError(w, 404, "not found")
+		return
+	}
+	if dbChirp.UserID != userID {
+		respondWithError(w, 403, "unauthorized")
+		return
+	}
+
+	deletedDbChirp, err := cfg.db.DeleteChirpByID(context.Background(), chirpUUID)
+	if err != nil {
+		respondWithError(w, 500, "something went wrong")
+		return
+	}
+
+	respondWithJSON(w, 204, dbChirpToChirp(deletedDbChirp))
 }
 
 type Chirp struct {
