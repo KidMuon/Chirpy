@@ -14,10 +14,36 @@ import (
 )
 
 func (cfg *apiConfig) handleGetAllChirps(w http.ResponseWriter, r *http.Request) {
-	dbChirps, err := cfg.db.GetAllChirps(r.Context())
+	var authorIDPresent bool
+
+	authorString := r.URL.Query().Get("author_id")
+
+	authorID, err := uuid.Parse(authorString)
 	if err != nil {
 		respondWithError(w, 500, "something went wrong")
 		return
+	} else if authorString == "" {
+		authorIDPresent = false
+	} else {
+		authorIDPresent = true
+	}
+
+	dbChirps := []database.Chirp{}
+
+	if !authorIDPresent {
+		allDBChirps, err := cfg.db.GetAllChirps(r.Context())
+		if err != nil {
+			respondWithError(w, 500, "something went wrong")
+			return
+		}
+		dbChirps = append(dbChirps, allDBChirps...)
+	} else {
+		authorDBChirps, err := cfg.db.GetAllChirpsByAuthor(context.Background(), authorID)
+		if err != nil {
+			respondWithError(w, 500, "something went wrong")
+			return
+		}
+		dbChirps = append(dbChirps, authorDBChirps...)
 	}
 
 	chirps := []Chirp{}
