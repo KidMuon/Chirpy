@@ -17,6 +17,7 @@ type apiConfig struct {
 	db             *database.Queries
 	platform       string
 	tokenSecret    string
+	polkaKey       string
 }
 
 func main() {
@@ -33,6 +34,7 @@ func main() {
 	cfg.db = dbQueries
 	cfg.platform = os.Getenv("PLATFORM")
 	cfg.tokenSecret = os.Getenv("TOKEN_SECRET")
+	cfg.polkaKey = os.Getenv("POLKA_KEY")
 
 	mux := http.NewServeMux()
 	appPathHandler := http.FileServer(http.Dir("."))
@@ -42,15 +44,20 @@ func main() {
 	mux.HandleFunc("POST /admin/reset", cfg.handleResetMetric)
 
 	mux.HandleFunc("GET /api/healthz", handleHealthz)
+
 	mux.HandleFunc("POST /api/users", cfg.handleCreateUser)
 	mux.HandleFunc("PUT /api/users", cfg.handleUpdateUser)
+
 	mux.HandleFunc("POST /api/chirps", cfg.handleCreateChirp)
 	mux.HandleFunc("GET /api/chirps", cfg.handleGetAllChirps)
 	mux.HandleFunc("GET /api/chirps/{chirpID}", cfg.handleGetChirpByID)
 	mux.HandleFunc("DELETE /api/chirps/{chirpID}", cfg.handleDeleteChirpByID)
+
 	mux.HandleFunc("POST /api/login", cfg.handleLoginUser)
 	mux.HandleFunc("POST /api/refresh", cfg.handleRefresh)
 	mux.HandleFunc("POST /api/revoke", cfg.handleRevoke)
+
+	mux.HandleFunc("POST /api/polka/webhooks", cfg.handleWebhooks)
 
 	server := http.Server{
 		Addr:    ":8080",

@@ -160,13 +160,15 @@ type User struct {
 	Email        string    `json:"email"`
 	Token        string    `json:"token"`
 	RefreshToken string    `json:"refresh_token"`
+	IsChirpyRed  bool      `json:"is_chirpy_red"`
 }
 
 func dbUserToUser(dbUser database.User) User {
 	return User{
-		Id:         dbUser.ID,
-		Created_at: dbUser.CreatedAt,
-		Updated_at: dbUser.UpdatedAt,
-		Email:      dbUser.Email,
+		Id:          dbUser.ID,
+		Created_at:  dbUser.CreatedAt,
+		Updated_at:  dbUser.UpdatedAt,
+		Email:       dbUser.Email,
+		IsChirpyRed: dbUser.IsChirpyRed.Bool,
 	}
 }

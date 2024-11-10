@@ -78,7 +78,22 @@ func GetBearerToken(headers http.Header) (string, error) {
 		return "", fmt.Errorf("no 'authorization' header present")
 	}
 
-	auth_header = strings.Trim(auth_header, "Bearer")
+	auth_header = strings.TrimSpace(auth_header)
+	auth_header = strings.TrimPrefix(auth_header, "Bearer")
+	auth_header = strings.TrimSpace(auth_header)
+
+	return auth_header, nil
+}
+
+func GetPolkaAPIKey(headers http.Header) (string, error) {
+	auth_header := headers.Get("Authorization")
+
+	if auth_header == "" {
+		return "", fmt.Errorf("no 'authorization' header present")
+	}
+
+	auth_header = strings.TrimSpace(auth_header)
+	auth_header = strings.TrimPrefix(auth_header, "ApiKey")
 	auth_header = strings.TrimSpace(auth_header)
 
 	return auth_header, nil
